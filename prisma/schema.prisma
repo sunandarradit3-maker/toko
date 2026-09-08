@@ -7,10 +7,30 @@ datasource db {
   provider = "postgresql"
 }
 
-enum ProductType { DIGITAL PHYSICAL }
-enum PaymentStatus { PENDING PAID PROCESSING SHIPPED COMPLETED CANCELLED }
-enum AdminRole { SUPER_ADMIN STAFF }
-enum BotSessionKind { ADD_PRODUCT EDIT_PRODUCT SHIP_ORDER }
+enum ProductType {
+  DIGITAL
+  PHYSICAL
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  STAFF
+}
+
+enum BotSessionKind {
+  ADD_PRODUCT
+  EDIT_PRODUCT
+  SHIP_ORDER
+}
 
 model User {
   id Int @id @default(autoincrement())
