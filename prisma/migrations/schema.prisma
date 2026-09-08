@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProductType {
+  DIGITAL
+  PHYSICAL
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  STAFF
+}
+
+enum BotSessionKind {
+  ADD_PRODUCT
+  EDIT_PRODUCT
+  SHIP_ORDER
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  telegramId  String   @unique @map("telegram_id")
+  name        String
+  email       String?
+  whatsapp    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  name        String
+  slug        String      @unique
+  type        ProductType
+  price       Decimal     @db.Decimal(14, 2)
+  stock       Int
+  description String
+  imageUrl    String?     @map("image_url")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  orders Order[]
+
+  @@index([type])
+  @@index([createdAt])
+  @@map("products")
+}
+
+model Order {
+  id                       Int           @id @default(autoincrement())
+  orderCode                String        @unique @map("order_code")
+  buyerName                String        @map("buyer_name")
+  buyerEmail               String        @map("buyer_email")
+  buyerWhatsapp            String        @map("buyer_whatsapp")
+  buyerAddress             String?       @map("buyer_address")
+  buyerProvince            String?       @map("buyer_province")
+  buyerCity                String?       @map("buyer_city")
+  buyerDistrict            String?       @map("buyer_district")
+  buyerSubdistrict         String?       @map("buyer_subdistrict")
+  buyerPostalCode          String?       @map("buyer_postal_code")
+  productType              ProductType   @map("product_type")
+  productId                Int?          @map("product_id")
+  productNameSnapshot      String        @map("product_name_snapshot")
+  unitPrice                Decimal       @db.Decimal(14, 2) @map("unit_price")
+  qty                      Int
+  totalPrice               Decimal       @db.Decimal(14, 2) @map("total_price")
+  paymentStatus            PaymentStatus @default(PENDING) @map("payment_status")
+  paymentMethod            String        @default("MANUAL_TRANSFER") @map("payment_method")
+  paymentProofUrl          String?       @map("payment_proof_url")
+  shippingResi             String?       @map("shipping_resi")
+  createdAt                DateTime      @default(now()) @map("created_at")
+  confirmedAt              DateTime?     @map("confirmed_at")
+  confirmedByAdminTelegramId String?     @map("confirmed_by_admin_telegram_id")
+
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([paymentStatus])
+  @@index([createdAt])
+  @@index([buyerEmail])
+  @@map("orders")
+}
+
+model Admin {
+  id         Int       @id @default(autoincrement())
+  telegramId String    @unique @map("telegram_id")
+  name       String
+  role       AdminRole @default(STAFF)
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@map("admins")
+}
+
+model BotSession {
+  id         Int            @id @default(autoincrement())
+  telegramId String         @unique @map("telegram_id")
+  kind       BotSessionKind
+  step       Int            @default(1)
+  payload    Json           @default("{}")
+  createdAt  DateTime       @default(now()) @map("created_at")
+  updatedAt  DateTime       @updatedAt @map("updated_at")
+
+  @@index([updatedAt])
+  @@map("bot_sessions")
+}
